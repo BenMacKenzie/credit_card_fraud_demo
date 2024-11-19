@@ -1,11 +1,11 @@
 # Databricks notebook source
 # MAGIC %sql
-# MAGIC create schema if not exists benmackenzie_catalog.credit_card_fraud_demo
+# MAGIC create schema if not exists bmac.credit_card_fraud_demo
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use benmackenzie_catalog.credit_card_fraud_demo
+# MAGIC use bmac.credit_card_fraud_demo
 
 # COMMAND ----------
 
@@ -69,13 +69,23 @@ customer_df.write.format('delta').mode('overwrite').saveAsTable('customers')
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import monotonically_increasing_id
 from faker import Faker
 import random
 
+from pyspark.sql.types import ArrayType, StructType, StructField, IntegerType, DateType, BooleanType, FloatType
+
+from pyspark.sql.functions import udf, explode, col, to_date, lit, coalesce, round as _round, sum as _sum, count, when, max, sequence
+
+from datetime import date
+from pyspark.sql.window import Window
+
+# COMMAND ----------
+
 # Initialize Faker
 fake = Faker()
+
+# COMMAND ----------
 
 
 # Function to generate merchant data
@@ -105,46 +115,6 @@ merchant_df.write.format('delta').mode('overwrite').option("overwriteSchema", "t
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC add merchant id instead of zipcode?
-# MAGIC Primary Account Number (PAN): This is the credit card number, which uniquely identifies the cardholder’s account.
-# MAGIC
-# MAGIC Transaction Amount: The total amount of the transaction, which may include the cost of the purchase and any additional fees (such as taxes or shipping).
-# MAGIC
-# MAGIC Merchant Identifier: This includes the merchant's name and possibly their merchant ID. This helps Visa identify where the transaction is occurring.
-# MAGIC
-# MAGIC Service Code: Information about the card's accepted uses and restrictions (e.g., whether it can be used internationally).
-# MAGIC
-# MAGIC Expiration Date: The card’s expiration date, used to verify that the card is still valid.
-# MAGIC
-# MAGIC Security Code (CVV, CVC, CID): A 3 or 4-digit code on the card that is not stored in the magnetic stripe, used to verify that the person making the transaction has the card in their possession.
-# MAGIC
-# MAGIC Date and Time: The exact date and time of the transaction.
-# MAGIC
-# MAGIC Terminal Identifier: Information about the terminal where the transaction is processed. This includes data like the terminal ID and the location.
-# MAGIC
-# MAGIC Transaction Type: Specifies the nature of the transaction (e.g., purchase, refund, cash advance).
-# MAGIC
-# MAGIC Authorization Code: A unique code returned by Visa once they approve the transaction, which is used to finalize the transaction on the merchant’s end.
-# MAGIC
-# MAGIC Currency Code: The currency in which the transaction is being made.
-# MAGIC
-# MAGIC POS Entry Mode: Point-of-sale (POS) entry mode indicates how the card information was captured (e.g., swiped, inserted, tapped, manually entered).
-
-# COMMAND ----------
-
-
-from faker import Faker
-import datetime
-import random
-
-from pyspark.sql.types import ArrayType, StructType, StructField, IntegerType, DateType, BooleanType, FloatType
-
-from pyspark.sql.functions import udf, explode, col
-
-
-# Initialize Faker and Spark session
-fake = Faker()
 
 # Function to calculate number of years
 def calculate_years(start_date):
@@ -223,10 +193,6 @@ transaction_df.write.format('delta').mode('overwrite').option("overwriteSchema",
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import explode, sequence, expr, col, to_date, lit, coalesce, round as _round, sum as _sum, count, when, max
-from datetime import date
-from pyspark.sql.window import Window
 
 # Assuming 'transaction_df' and 'customer_df' are your DataFrame loaded appropriately
 
