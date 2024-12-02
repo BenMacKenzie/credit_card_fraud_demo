@@ -387,11 +387,6 @@ except Exception as e:
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC Deploy model to serving endpoint through UI or code (reference?)
-
-# COMMAND ----------
-
 
 
 # COMMAND ----------
@@ -415,6 +410,18 @@ print(data)
 
 inferences = wc.serving_endpoints.query(endpoint_name, inputs=data)
 print(inferences.predictions)
+
+# COMMAND ----------
+
+from databricks.sdk import WorkspaceClient
+import os
+
+w = WorkspaceClient()
+
+token = w.tokens.create(
+    lifetime_seconds=3000
+)
+os.environ['DATABRICKS_TOKEN'] = token.token_value
 
 # COMMAND ----------
 
