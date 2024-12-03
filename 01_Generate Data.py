@@ -1,11 +1,11 @@
 # Databricks notebook source
 # MAGIC %sql
-# MAGIC create schema if not exists bmac.credit_card_fraud_demo
+# MAGIC create schema if not exists benmackenzie_catalog.credit_card_fraud_demo
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use bmac.credit_card_fraud_demo
+# MAGIC use benmackenzie_catalog.credit_card_fraud_demo
 
 # COMMAND ----------
 
@@ -79,11 +79,6 @@ from pyspark.sql.functions import udf, explode, col, to_date, lit, coalesce, rou
 
 from datetime import date
 from pyspark.sql.window import Window
-
-# COMMAND ----------
-
-# Initialize Faker
-fake = Faker()
 
 # COMMAND ----------
 

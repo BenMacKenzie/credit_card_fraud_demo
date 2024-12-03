@@ -5,7 +5,7 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC use bmac.credit_card_fraud_demo
+# MAGIC use benmackenzie_catalog.credit_card_fraud_demo
 
 # COMMAND ----------
 
@@ -24,7 +24,7 @@ from databricks.feature_engineering import FeatureAggregations, Aggregation, Win
 from databricks.feature_engineering.entities.aggregation_function import ApproxCountDistinct
 
 aggregations = FeatureAggregations(
-    source_table='bmac.credit_card_fraud_demo.transactions',
+    source_table='benmackenzie_catalog.credit_card_fraud_demo.transactions',
     lookup_key="primary_account_number",
     timestamp_key="transaction_date",
     start_time=datetime.datetime(2023, 1, 1),
@@ -56,3 +56,7 @@ df = fe.aggregate_features(
     features=aggregations,
 )
 display(df)
+
+# COMMAND ----------
+
+
