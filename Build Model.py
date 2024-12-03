@@ -4,10 +4,6 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-dbutils.library.restartPython()
-
-# COMMAND ----------
-
 catalog = 'bmac'
 schema = 'credit_card_fraud_demo'
 
