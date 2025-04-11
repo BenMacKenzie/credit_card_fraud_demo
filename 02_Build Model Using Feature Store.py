@@ -379,7 +379,7 @@ from databricks.sdk.service.serving import ServedModelInput, ServedModelInputWor
 
 endpoint_name = "bmac_cc_fraud_endpoint"
 wc = WorkspaceClient()
-served_models =[ServedModelInput(f"{catalog}.{schema}.transaction_fraud", model_version=9, workload_size=ServedModelInputWorkloadSize.SMALL, scale_to_zero_enabled=True)]
+served_models =[ServedModelInput(f"{catalog}.{schema}.transaction_fraud", model_version=1, workload_size=ServedModelInputWorkloadSize.SMALL, scale_to_zero_enabled=True)]
 try:
     print(f'Creating endpoint {endpoint_name} with latest version...')
     wc.serving_endpoints.create_and_wait(endpoint_name, config=EndpointCoreConfigInput(served_models=served_models))
@@ -398,23 +398,6 @@ except Exception as e:
 
 # MAGIC %md
 # MAGIC ### Call model
-
-# COMMAND ----------
-
-data = [
-    {
-        "primary_account_number": 10048,
-        "observation_date": "2024-04-15",
-        "merchant_id": 20018,
-        "amount": 465.25
-    }
-]
-print('Data sent to the model:')
-print(data)
-
-
-inferences = wc.serving_endpoints.query(endpoint_name, inputs=data)
-print(inferences.predictions)
 
 # COMMAND ----------
 
@@ -440,7 +423,7 @@ def create_tf_serving_json(data):
     return {'inputs': {name: data[name].tolist() for name in data.keys()} if isinstance(data, dict) else data.tolist()}
 
 def score_model(dataset):
-    url = 'https://adb-984752964297111.11.azuredatabricks.net/serving-endpoints/bmac_cc_fraud_endpoint/invocations'
+    url = 'https://e2-demo-field-eng.cloud.databricks.com/serving-endpoints/bmac_cc_fraud_endpoint/invocations'
     headers = {'Authorization': f'Bearer {os.environ.get("DATABRICKS_TOKEN")}', 'Content-Type': 'application/json'}
     ds_dict = {'dataframe_split': dataset.to_dict(orient='split')} if isinstance(dataset, pd.DataFrame) else create_tf_serving_json(dataset)
     data_json = json.dumps(ds_dict, allow_nan=True)
@@ -466,6 +449,11 @@ print(result)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC #### Example of using AI_Query.  Endpoint will retrieve any feature not supplied in query from online table
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC SELECT ai_query('bmac_cc_fraud_endpoint',
 # MAGIC     request =>  named_struct(
@@ -476,6 +464,34 @@ print(result)
 # MAGIC     ),
 # MAGIC     returnType => 'Float'
 # MAGIC ) AS churn
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### The following demonstrates supplying all of the features to the endpoint. 
+# MAGIC
+# MAGIC Note that we still need to include all of the primary and foreign keys even though we are supplying all of the features.  If this were not a fe model, this would not be the case..we could just suppply all of the features.
+
+# COMMAND ----------
+
+eol_df = spark.sql('select * from fraud_eol')
+
+training_set = fe.create_training_set(
+    df=eol_df,
+    feature_lookups=feature_lookups,
+    label = 'label',
+    exclude_columns = ['transaction_id', 'customer_id', 'observation_date',  'merchant_zip', 'zip_code']
+)
+training_df = training_set.load_df()
+training_df.write.mode("overwrite").saveAsTable(f"{catalog}.{schema}.batch_inference")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT ai_query('bmac_cc_fraud_endpoint',
+# MAGIC     request =>  struct(*),
+# MAGIC     returnType => 'Float'
+# MAGIC ) AS fraud from batch_inference
 
 # COMMAND ----------
 
