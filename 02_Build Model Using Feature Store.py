@@ -1,10 +1,15 @@
 # Databricks notebook source
-pip install databricks-feature-store mlflow scikit-learn
-dbutils.library.restartPython()
+pip install databricks-feature-engineering
+
 
 # COMMAND ----------
 
-catalog = 'bmac'
+# MAGIC %restart_python
+
+# COMMAND ----------
+
+
+catalog = 'benmackenzie_catalog'
 schema = 'credit_card_fraud_demo'
 
 # COMMAND ----------
@@ -34,7 +39,7 @@ spark.sql(f"use {catalog}.{schema}")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Mercants: Type 1 SCD table
+# MAGIC ###Merhcants: Type 1 SCD table
 
 # COMMAND ----------
 
@@ -71,7 +76,7 @@ spark.sql(f"use {catalog}.{schema}")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE or replace FUNCTION bmac.credit_card_fraud_demo.distance(from_zip string, to_zip string)
+# MAGIC CREATE or replace FUNCTION benmackenzie_catalog.promote_model_demo.distance(from_zip string, to_zip string)
 # MAGIC RETURNS double
 # MAGIC LANGUAGE PYTHON
 # MAGIC COMMENT 'distance between two zip codes'
@@ -170,6 +175,10 @@ training_df = training_set.load_df()
 
 # COMMAND ----------
 
+training_df.write.mode("overwrite").saveAsTable(f"{catalog}.{schema}.training_ds")
+
+# COMMAND ----------
+
 display(training_df)
 
 # COMMAND ----------
@@ -249,7 +258,7 @@ from databricks.feature_store import FeatureStoreClient
 
 fs = FeatureStoreClient()
 
-logged_model = 'runs:/1be30fca7e914f3ebc28f0ca61f98fe9/model'
+logged_model = 'runs:/f6170ca6841842a7b86212715a9e0ba7/model'
 #logged_model = f"runs:/{run.info.run_id}/model"
 
 # This model was packaged by Feature Store.
@@ -265,7 +274,7 @@ display(predictions)
 # COMMAND ----------
 
 
-logged_model = 'runs:/1be30fca7e914f3ebc28f0ca61f98fe9/model'
+logged_model = 'runs:/f6170ca6841842a7b86212715a9e0ba7/model'
 #logged_model = f"runs:/{run.info.run_id}/model"
 
 mlflow.register_model(
@@ -276,7 +285,7 @@ mlflow.register_model(
 
 from mlflow import MlflowClient
 client = MlflowClient()
-client.set_registered_model_alias(f"{catalog}.{schema}.transaction_fraud", "champion", 9)
+client.set_registered_model_alias(f"{catalog}.{schema}.transaction_fraud", "champion", 1)
 
 # COMMAND ----------
 
